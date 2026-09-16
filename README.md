@@ -227,5 +227,4 @@ Active development.
 Planned work includes additional DSP effects, expanded experimental characterization, audio-quality measurements, and further hardware refinement.
 
 
-<img width="666" height="375" alt="7448d674-3cfc-4cf9-ab88-5cb7c3a28c2d" src="https://github.com/user-attachments/assets/63558f9f-1172-43c1-9434-3829b08f5324" />
 

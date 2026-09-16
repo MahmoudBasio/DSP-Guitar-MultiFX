@@ -220,12 +220,12 @@ Robotics • Embedded Systems • Real-Time DSP
 * LinkedIn: [linkedin.com/in/basio](https://www.linkedin.com/in/basio)
 * ORCID: https://orcid.org/0009-0007-1747-1609
 
-  **Tamer Mohamed**
+**Tamer Mohamed**
   
-  Robotics • Mechanical Designer • Real-Time DSP
+Robotics • Mechanical Designer • Real-Time DSP
 
   
-* GitHub: https://github.com/Temo-Mo
+* GitHub: [@Temo-MO](https://github.com/Temo-Mo)
 * LinkedIn: https://www.linkedin.com/in/tamer-mohamed-16123a294/
 
 ## Project Status

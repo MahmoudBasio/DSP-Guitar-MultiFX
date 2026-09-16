@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it using the metadata below."
+title: "DSP Guitar MultiFX"
+type: software
+authors:
+  - family-names: "Basiony"
+    given-names: "Mahmoud"
+    orcid: "https://orcid.org/0009-0007-1747-1609"
+repository-code: "https://github.com/MahmoudBasio/DSP-Guitar-MultiFX"
+license: MIT

@@ -218,7 +218,7 @@ Robotics • Embedded Systems • Real-Time DSP
 
 * GitHub: [@MahmoudBasio](https://github.com/MahmoudBasio)
 * LinkedIn: [linkedin.com/in/basio](https://www.linkedin.com/in/basio)
-* ORCID:(https://orcid.org/0009-0007-1747-1609)
+* ORCID: https://orcid.org/0009-0007-1747-1609
 
 ## Project Status
 

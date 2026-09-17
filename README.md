@@ -36,11 +36,20 @@ The project includes the complete firmware alongside hardware design files, PCB 
 * Mechanical enclosure design
 * Open-source hardware and firmware
 
-## Performance
+## Audio configuration and validation status
 
-Current experimental evaluation is performed at **44.1 kHz** using **128-sample audio blocks**.
+The firmware uses **44.1 kHz**, **128-sample blocks**, and **signed 16-bit audio
+samples**. The custom chorus uses float arithmetic internally. The graph is mono
+with identical left/right outputs; codec hardware capabilities are not the
+implemented processing resolution. The block period is not round-trip latency.
 
-| Metric                      | Measured Result |
+Safety fixes change gain staging, input-level configuration, audio-pool allocation,
+chorus bypass processing, and control handling. The figures below are **historical
+reported results**, retained unchanged, and must not be attributed to the revised
+firmware without new measurements. Their exact test commit, raw logs and complete
+test procedure have not been supplied here.
+
+| Metric                      | Historical reported result |
 | --------------------------- | --------------: |
 | Sample Rate                 |        44.1 kHz |
 | Audio Block Size            |     128 samples |
@@ -48,7 +57,7 @@ Current experimental evaluation is performed at **44.1 kHz** using **128-sample 
 | Maximum DSP Processing Time |       145.29 µs |
 | Maximum Reported CPU Usage  |           5.01% |
 
-### CPU Utilization
+### Historical CPU utilization
 
 | Configuration           | Maximum CPU Usage |
 | ----------------------- | ----------------: |
@@ -58,7 +67,28 @@ Current experimental evaluation is performed at **44.1 kHz** using **128-sample 
 | Chorus                  |             4.98% |
 | Delay + Reverb + Chorus |             5.01% |
 
-These values represent measurements from the current firmware implementation and test configuration.
+These figures are not newly verified results. Audio-library CPU utilization does
+not include the whole foreground UI workload. Block-processing time calculated
+from CPU percent is not an independent measurement or end-to-end audio latency.
+Use the diagnostic build and [measurement procedure](Docs/Testing.md) to collect
+new results at a recorded commit.
+
+### Firmware safety changes
+
+* Chorus depth is limited by base delay and the 2048-sample history buffer; the
+  instantaneous read delay is bounded to 1-2046 samples.
+* Each footswitch is independently debounced in foreground polling; effect
+  management no longer runs in footswitch interrupts.
+* The audio pool is increased to 400 blocks to budget for the 1000 ms delay plus
+  3 ms modulation and graph overhead. Verify peak occupancy on hardware.
+* Gain pairs are normalized, and delay input gain is reduced as feedback rises.
+  This changes levels and reduces avoidable summing saturation; it does not
+  certify the complete analog/digital path as distortion-free.
+* Standby digitally mutes both output channels as well as headphone volume.
+* An optional diagnostics build logs CPU, audio-pool usage, states and parameters.
+
+The current firmware still needs hardware latency/audio-quality measurements,
+worst-case stress tests, and evaluation of switching/modulation artifacts.
 
 ## System Architecture
 
@@ -100,6 +130,11 @@ firmware/src/
 
 This organization keeps individual effects separated from audio routing and interface logic.
 
+See [the actual signal graph and implementation details](Docs/Architecture.md).
+Delay and Freeverb use Teensy Audio Library implementations; the modulated
+chorus is implemented in this repository. Effects-off retains the codec,
+3.2 kHz prefilter and output gains: it is not a transparent analog bypass.
+
 ## Hardware
 
 The platform is built around:
@@ -131,28 +166,31 @@ The firmware is implemented in **C++** using the **Arduino framework for Teensy*
 
 Current PlatformIO dependencies include:
 
-* U8g2
-* CriticalTaskScheduler
+* Teensy platform 6.0.0
+* U8g2 2.36.18
+* CriticalTaskScheduler 1.0.7
 
 The repository is configured for:
 
 ```ini
-platform = teensy
+platform = teensy@6.0.0
 board = teensy41
 framework = arduino
 ```
 
 ## Adding a New Effect
 
-The DSP architecture is designed to make effects modular.
+The architecture provides a shared effect-control interface, not automatic
+plugin discovery or runtime signal-chain reordering.
 
 To implement a new effect:
 
 1. Create the new effect implementation inside `firmware/src/effects/`.
 2. Implement the project's effect interface.
 3. Define the effect parameters and processing logic.
-4. Register the effect with the effect-management system.
-5. Connect its parameters to the user interface as required.
+4. Add its audio objects and static connections in `audio_graph.cpp`.
+5. Add explicit management, parameter mapping, menu/display entries, and tests.
+6. Review signal levels, audio-pool capacity and processing time for the new graph.
 
 This allows new algorithms such as distortion, tremolo, or additional modulation effects to be integrated without redesigning the complete audio system.
 
@@ -183,16 +221,33 @@ Open the `firmware` directory using **VS Code + PlatformIO**.
 Build the project:
 
 ```bash
-pio run
+pio run -e teensy41
 ```
 
 Upload to the Teensy 4.1:
 
 ```bash
-pio run --target upload
+pio run -e teensy41 --target upload
 ```
 
 ## Research
+
+Run the host regression suite on a Bash/GCC system:
+
+```bash
+bash test/run_host_tests.sh
+```
+
+From the `firmware` directory, the optional hardware diagnostics build is:
+
+```bash
+pio run -e teensy41_diagnostics --target upload
+pio device monitor --baud 115200
+```
+
+Send lowercase `r` after settling each test configuration to print a CSV header
+and reset peak measurements. [Testing.md](Docs/Testing.md) describes coverage,
+limits, data capture and the hardware checks required before publication.
 
 This platform is also being developed and experimentally evaluated as part of research into modular, low-cost, open-source real-time embedded DSP systems.
 

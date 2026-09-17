@@ -2,6 +2,7 @@
 #include "audio/audio_graph.h"
 #include "audio/mixer.h"
 #include "dsp/parameters.h"
+#include "dsp/safety.h"
 
 DelayEffect::DelayEffect() : enabled(false) {}
 
@@ -15,14 +16,20 @@ bool DelayEffect::isEnabled() const {
 }
 
 void DelayEffect::updateParameters() {
-    AudioGraph::delay1.delay(0, currentDelayParams.time_ms);
+    const float delayMs = DspSafety::clampFinite(currentDelayParams.time_ms, DELAY_MIN_MS, DELAY_MAX_MS);
+    AudioNoInterrupts();
+    AudioGraph::delay1.delay(0, delayMs);
+    AudioInterrupts();
     Mixer::updateDelayInput(enabled, currentDelayParams.feedback);
 }
 
 void DelayEffect::updateModulation(float mod_ms) {
     if (enabled) {
-        int dynamicDelay = (int)(currentDelayParams.time_ms + mod_ms);
-        if (dynamicDelay < 1) dynamicDelay = 1;
+        const float modulation = DspSafety::clampFinite(mod_ms, -DELAY_MOD_DEPTH_MS, DELAY_MOD_DEPTH_MS);
+        const float base = DspSafety::clampFinite(currentDelayParams.time_ms, DELAY_MIN_MS, DELAY_MAX_MS);
+        const float dynamicDelay = base + modulation;
+        AudioNoInterrupts();
         AudioGraph::delay1.delay(0, dynamicDelay);
+        AudioInterrupts();
     }
 }

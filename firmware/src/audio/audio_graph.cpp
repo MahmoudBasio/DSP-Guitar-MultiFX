@@ -1,10 +1,15 @@
 #include "audio/audio_graph.h"
+#include "config/constants.h"
+#include "dsp/safety.h"
+
+static_assert(AUDIO_BLOCK_SAMPLES == DSP_BLOCK_SAMPLES, "Re-budget memory for a new block size");
+static_assert(AUDIO_SAMPLE_RATE_EXACT == DSP_SAMPLE_RATE_HZ, "Re-budget delay buffers for a new sample rate");
 
 namespace AudioGraph {
     // Instantiate raw objects
     AudioInputI2S            in;
-    AudioEffectCustomChorus  chorus;
     AudioFilterBiquad        preFilter;
+    AudioEffectCustomChorus  chorus;
     AudioMixer4              delayInputMixer;
     AudioEffectDelay         delay1;
     AudioFilterBiquad        repeatFilter;
@@ -36,8 +41,9 @@ namespace AudioGraph {
     AudioConnection patchCord17(finalMixerR, 0, out, 1);
 
     void setup() {
-        AudioMemory(300);
+        AudioMemory(AUDIO_MEMORY_BLOCKS);
         audioShield.enable();
         audioShield.inputSelect(AUDIO_INPUT_LINEIN);
+        audioShield.lineInLevel(LINEIN_LEVEL);
     }
 }

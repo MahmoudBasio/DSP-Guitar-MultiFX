@@ -2,15 +2,20 @@
 #include "audio/audio_graph.h"
 #include "audio/mixer.h"
 #include "config/constants.h"
+#include "dsp/safety.h"
 
 namespace AudioManager {
     void init() {
-        AudioGraph::setup(); // Allocates global memory and I2S
-        setupStaticRouting();
+        // Mute before enabling the codec, including when booting into standby.
         Mixer::init();
+        setupStaticRouting();
+        AudioGraph::setup();
     }
 
     void setSystemVolume(float volume) {
+        volume = DspSafety::clampFinite(volume, 0.0f, 1.0f);
+        // SGTL5000 volume() affects headphones, not line-out. Mute in the graph too.
+        Mixer::setOutputEnabled(volume > 0.0f);
         AudioGraph::audioShield.volume(volume);
     }
 

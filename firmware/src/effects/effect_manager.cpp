@@ -4,6 +4,7 @@
 #include "config/presets.h"
 #include "dsp/dsp.h"
 #include "ui/ui.h"
+#include "dsp/safety.h"
 
 DelayEffect EffectManager::delay;
 ReverbEffect EffectManager::reverb;
@@ -14,8 +15,11 @@ void EffectManager::init() {
 }
 
 void EffectManager::applySettings() {
-    currentDelayParams.time_ms = (int)mapFloat(values[0][0], 0, 100, 10.0, 1000.0);
-    currentDelayParams.feedback = mapFloat(values[0][1], 0, 100, 0.0, 0.95);
+    for (auto &effectValues : values) {
+        for (int &value : effectValues) value = value < 0 ? 0 : (value > 100 ? 100 : value);
+    }
+    currentDelayParams.time_ms = (int)mapFloat(values[0][0], 0, 100, DELAY_MIN_MS, DELAY_MAX_MS);
+    currentDelayParams.feedback = mapFloat(values[0][1], 0, 100, 0.0, DELAY_MAX_FEEDBACK);
     currentDelayParams.wet = mapFloat(values[0][2], 0, 100, 0.0, 1.0);
 
     currentReverbParams.room_size = mapFloat(values[1][0], 0, 100, 0.0, 1.0);
@@ -25,6 +29,8 @@ void EffectManager::applySettings() {
     currentChorusParams.rate_hz = mapFloat(values[2][0], 0, 100, 0.1, 5.0);
     currentChorusParams.depth = mapFloat(values[2][1], 0, 100, 0.0, 30.0);
     currentChorusParams.base_ms = mapFloat(values[2][2], 0, 100, 10.0, 30.0);
+    currentChorusParams.depth = DspSafety::clampFinite(currentChorusParams.depth, 0.0f,
+        DspSafety::chorusDepthLimit(currentChorusParams.base_ms));
 
     delay.updateParameters();
     reverb.updateParameters();

@@ -1,6 +1,7 @@
 #include "effects/reverb.h"
 #include "audio/audio_graph.h"
 #include "dsp/parameters.h"
+#include "dsp/safety.h"
 
 ReverbEffect::ReverbEffect() : enabled(false) {}
 
@@ -14,6 +15,10 @@ bool ReverbEffect::isEnabled() const {
 }
 
 void ReverbEffect::updateParameters() {
-    AudioGraph::reverb1.roomsize(currentReverbParams.room_size);
-    AudioGraph::reverb1.damping(currentReverbParams.damping);
+    const float room = DspSafety::clampFinite(currentReverbParams.room_size, 0.0f, 1.0f);
+    const float damping = DspSafety::clampFinite(currentReverbParams.damping, 0.0f, 1.0f);
+    AudioNoInterrupts();
+    AudioGraph::reverb1.roomsize(room);
+    AudioGraph::reverb1.damping(damping);
+    AudioInterrupts();
 }

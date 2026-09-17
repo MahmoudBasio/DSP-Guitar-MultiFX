@@ -30,12 +30,14 @@ void task_UIRefresh() {
 
 // Map the callbacks to the standard task objects
 TSTask tSystemCheck("SysCheck", 50, cb_SystemCheck);
+TSTask tFootswitchPoll("Footswitches", 5, pollFootswitches);
 TSTask tEncoderPoll("Encoder", 5, task_EncoderPoll);
 TSTask tDelayMod("Modulation", 20, task_DelayModulation);
 TSTask tUIRefresh("UI", 33, task_UIRefresh);
 
 void initScheduler() {
     sched.addTask(&tSystemCheck);
+    sched.addTask(&tFootswitchPoll);
     sched.addTask(&tEncoderPoll);
     sched.addTask(&tDelayMod);
     sched.addTask(&tUIRefresh);

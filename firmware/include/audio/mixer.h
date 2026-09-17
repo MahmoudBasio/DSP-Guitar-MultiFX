@@ -16,6 +16,7 @@ namespace Mixer {
 
     // Sets the final stereo output dry/wet balances
     void updateFinalOutput();
+    void setOutputEnabled(bool enabled);
 }
 
 #endif // AUDIO_MIXER_H

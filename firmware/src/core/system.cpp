@@ -1,4 +1,5 @@
 #include "core/system.h"
+#include "core/debounce.h"
 #include "core/hardware.h"
 #include "config/pins.h"
 #include "config/constants.h"
@@ -6,53 +7,52 @@
 #include "effects/effect_manager.h"
 #include "ui/ui.h"
 
+namespace {
+DebouncedInput switches[3];
+DebouncedInput masterSwitch;
+const int footswitchPins[] = {PIN_FS_DELAY, PIN_FS_REVERB, PIN_FS_CHORUS};
 
-unsigned long lastInterruptTime = 0;
+void applySystemState(bool on) {
+    system_is_on = on;
+    digitalWrite(PIN_SYS_LED, on ? HIGH : LOW);
+    AudioManager::setSystemVolume(on ? OUTPUT_VOLUME : 0.0f);
+    if (on) {
+        ui_needs_update = true;
+    } else {
+        u8g2.clearBuffer();
+        u8g2.setFont(u8g2_font_7x14_tr);
+        u8g2.drawStr(20, 38, "SYSTEM STANDBY");
+        u8g2.sendBuffer();
+        ui_needs_update = false;
+    }
+}
+}
 
+// Called after audio/effect initialization. No footswitch ISR mutates audio state.
 void initSystem() {
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_REVERB), isrToggleReverb, FALLING); 
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_DELAY), isrToggleDelay, FALLING);   
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_CHORUS), isrToggleChorus, FALLING); 
+    const uint32_t now = millis();
+    for (int i = 0; i < 3; ++i) {
+        switches[i].begin(digitalRead(footswitchPins[i]) == LOW, now);
+    }
+    masterSwitch.begin(digitalRead(PIN_SYS_BTN) == LOW, now);
+    applySystemState(masterSwitch.isPressed());
 }
 
-void isrToggleReverb() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleReverb();
-        lastInterruptTime = millis(); 
-    } 
-}
-void isrToggleDelay() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleDelay();
-        lastInterruptTime = millis(); 
-    } 
-}
-void isrToggleChorus() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleChorus();
-        lastInterruptTime = millis(); 
-    } 
+void pollFootswitches() {
+    const uint32_t now = millis();
+    for (int i = 0; i < 3; ++i) {
+        const bool changed = switches[i].update(
+            digitalRead(footswitchPins[i]) == LOW, now, DEBOUNCE_DELAY_MS);
+        // Still track releases during standby; never queue a stale press.
+        if (!changed || !switches[i].isPressed() || !system_is_on) continue;
+        if (i == 0) EffectManager::toggleDelay();
+        else if (i == 1) EffectManager::toggleReverb();
+        else EffectManager::toggleChorus();
+    }
 }
 
 void cb_SystemCheck() {
-    static bool last_system_state = true;
-    bool current_system_state = (digitalRead(PIN_SYS_BTN) == LOW); 
-
-    if (current_system_state != last_system_state) {
-        last_system_state = current_system_state;
-        if (current_system_state) {
-            system_is_on = true;
-            digitalWrite(PIN_SYS_LED, HIGH);
-            AudioManager::setSystemVolume(OUTPUT_VOLUME); 
-            ui_needs_update = true;            
-        } else {
-            system_is_on = false;
-            digitalWrite(PIN_SYS_LED, LOW);
-            AudioManager::setSystemVolume(0);             
-            u8g2.clearBuffer();
-            u8g2.setFont(u8g2_font_7x14_tr);
-            u8g2.drawStr(20, 38, "SYSTEM STANDBY");
-            u8g2.sendBuffer();
-        }
+    if (masterSwitch.update(digitalRead(PIN_SYS_BTN) == LOW, millis(), DEBOUNCE_DELAY_MS)) {
+        applySystemState(masterSwitch.isPressed());
     }
 }

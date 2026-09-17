@@ -2,8 +2,27 @@
 #include "ui/ui.h"
 #include "core/hardware.h"
 #include "effects/effect_manager.h"
+#include "dsp/parameters.h"
 #include <stdio.h>
 #include <string.h>
+
+namespace {
+void formatParameter(char *text, size_t size, int effect, int parameter) {
+    if (effect == 0) {
+        if (parameter == 0) snprintf(text, size, "%d ms", currentDelayParams.time_ms);
+        else snprintf(text, size, "%.0f%%", 100.0f * (parameter == 1 ?
+            currentDelayParams.feedback : currentDelayParams.wet));
+    } else if (effect == 1) {
+        const float value = parameter == 0 ? currentReverbParams.room_size :
+            (parameter == 1 ? currentReverbParams.damping : currentReverbParams.wet);
+        snprintf(text, size, "%.0f%%", value * 100.0f);
+    } else {
+        const float value = parameter == 0 ? currentChorusParams.rate_hz :
+            (parameter == 1 ? currentChorusParams.depth : currentChorusParams.base_ms);
+        snprintf(text, size, "%.2f %s", value, parameter == 0 ? "Hz" : "ms");
+    }
+}
+}
 
 void drawUI() {
     u8g2.clearBuffer();
@@ -38,7 +57,9 @@ void drawUI() {
                 const char* pName = (main_index == 0) ? delay_params[i] : (main_index == 1) ? reverb_params[i] : chorus_params[i];
                 
                 char lineBuf[30];
-                sprintf(lineBuf, "%s: %d%%", pName, values[main_index][i]);
+                char valueText[20];
+                formatParameter(valueText, sizeof(valueText), main_index, i);
+                snprintf(lineBuf, sizeof(lineBuf), "%s: %s", pName, valueText);
 
                 if (i == sub_index) { 
                     u8g2.drawStr(5, y, ">"); 
@@ -56,7 +77,8 @@ void drawUI() {
             u8g2.drawFrame(10, 38, 108, 10); 
             u8g2.drawBox(12, 40, values[main_index][sub_index], 6);
             
-            char s[20]; sprintf(s, "LEVEL: %d%%", values[main_index][sub_index]);
+            char s[20];
+            formatParameter(s, sizeof(s), main_index, sub_index);
             u8g2.setFont(u8g2_font_6x12_tr); u8g2.drawStr(15, 60, s); 
         }
         

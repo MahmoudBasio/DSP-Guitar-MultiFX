@@ -6,6 +6,7 @@
 #include "effects/effect_manager.h"
 #include "ui/display.h"
 #include "config/constants.h"
+#include "core/diagnostics.h"
 
 void setup() {
     // 1. Start Serial for debugging
@@ -14,25 +15,23 @@ void setup() {
     // 2. Initialize low-level hardware (Pins, Encoder, Display)
     initHardware();
     
-    // 3. Initialize system interrupts (Footswitches)
-    initSystem();
-
-    // 4. Initialize Audio Graph (Memory, I2S, Static Patch Cords)
+    // 3. Initialize Audio Graph (Memory, I2S, Static Patch Cords)
     AudioManager::init();
 
-    // 5. Initialize Effect wrappers and set default states
+    // 4. Initialize Effect wrappers and set default states
     EffectManager::init();
 
-    // 6. Set initial volume and draw the UI
-    AudioManager::setSystemVolume(OUTPUT_VOLUME); 
-    drawUI(); 
+    // 5. Honor the physical master switch before unmuting the output.
+    initSystem();
+    if (system_is_on) drawUI();
 
-    // 7. Register and enable background tasks
+    // 6. Register and enable foreground control tasks
     initScheduler();
+    Diagnostics::init();
 }
 
 void loop() {
-    // The CriticalTaskScheduler handles all execution.
-    // Periodic tasks (Poll, Modulation, UI) run in the background.
+    // Cooperative control tasks run here; AudioStream runs in the audio interrupt.
     sched.execute(); 
+    Diagnostics::poll();
 }

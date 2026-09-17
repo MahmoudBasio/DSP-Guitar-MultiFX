@@ -10,7 +10,7 @@
 void pollEncoder() {
     if (!system_is_on) return; 
 
-    static long oldPos = -999;
+    static long oldPos = myEnc.read() / 4;
     long newPos = myEnc.read() / 4;
     if (newPos != oldPos) {
         handleRotation((newPos > oldPos) ? 1 : -1);

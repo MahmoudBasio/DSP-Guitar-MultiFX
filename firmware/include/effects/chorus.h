@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <AudioStream.h>
 #include "effects/ieffect.h"
+#include "config/constants.h"
 
 // 1. Raw DSP Object
 class AudioEffectCustomChorus : public AudioStream {
@@ -14,7 +15,7 @@ public:
     virtual void update(void) override;
 private:
     audio_block_t *inputQueueArray[1];
-    static const int BUFFER_SIZE = 2048;
+    static const int BUFFER_SIZE = CHORUS_BUFFER_SAMPLES;
     float delayBuffer[BUFFER_SIZE];
     int writeIndex;
     float lfoPhase;
@@ -24,7 +25,7 @@ private:
     float rate;
     float dryMix;
     float wetMix;
-    const float SAMPLE_RATE = 44100.0f;
+    const float SAMPLE_RATE = AUDIO_SAMPLE_RATE_EXACT;
 };
 
 // 2. High-Level Plugin Wrapper
@@ -36,7 +37,6 @@ public:
     void updateParameters() override;
 private:
     bool enabled;
-    const float CHORUS_DRY_GAIN = 0.6f;
 };
 
 #endif // EFFECTS_CHORUS_H

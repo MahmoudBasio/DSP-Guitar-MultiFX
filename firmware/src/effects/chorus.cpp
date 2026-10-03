@@ -6,25 +6,39 @@
 
 // --- DSP Class Implementation ---
 AudioEffectCustomChorus::AudioEffectCustomChorus() 
-    : AudioStream(1, inputQueueArray), writeIndex(0), lfoPhase(0.0f), enabled(true),
+    : AudioStream(2, inputQueueArray), writeIndex(0), lfoPhase(0.0f), enabled(true),
       baseDelay(20.0f), depth(10.0f), rate(0.2f), dryMix(0.6f), wetMix(0.8f) {
     memset(delayBuffer, 0, sizeof(delayBuffer));
 }
 
 void AudioEffectCustomChorus::setEnabled(bool en) { enabled = en; }
 
+void AudioEffectCustomChorus::setWetFilterEnabled(bool en) { wetFilterEnabled = en; }
+
 void AudioEffectCustomChorus::setParams(float b, float d, float r, float dg, float wg) {
-    baseDelay = b; depth = d; rate = r; dryMix = dg; wetMix = wg;
+    // Keep both interpolation taps within the available delay history.
+    const float maxDelayMs = (BUFFER_SIZE - 2) * 1000.0f / SAMPLE_RATE;
+    baseDelay = constrain(b, 1.0f, maxDelayMs);
+    depth = constrain(d, 0.0f, fminf(baseDelay - 1.0f, maxDelayMs - baseDelay));
+    rate = constrain(r, 0.1f, 5.0f);
+    dryMix = constrain(dg, 0.0f, 1.0f);
+    wetMix = constrain(wg, 0.0f, 1.0f);
 }
 
 void AudioEffectCustomChorus::update(void) {
     audio_block_t *block = receiveWritable(0);
-    if (!block) return;
-    if (!enabled) { transmit(block); release(block); return; }
+    audio_block_t *filtered = receiveReadOnly(1);
+    if (!block) { if (filtered) release(filtered); return; }
+    if (!enabled) {
+        if (filtered) release(filtered);
+        transmit(block); release(block); return;
+    }
 
     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
         float input = block->data[i] / 32768.0f;
-        delayBuffer[writeIndex] = input;
+        // Only the delayed component may be filtered; dry audio stays unfiltered.
+        delayBuffer[writeIndex] = wetFilterEnabled
+            ? (filtered ? filtered->data[i] / 32768.0f : 0.0f) : input;
         
         float lfo = sinf(lfoPhase);
         lfoPhase += 2.0f * PI * rate / SAMPLE_RATE;
@@ -43,6 +57,7 @@ void AudioEffectCustomChorus::update(void) {
         block->data[i] = (int16_t)(output * 32767.0f);
         writeIndex = (writeIndex + 1) % BUFFER_SIZE;
     }
+    if (filtered) release(filtered);
     transmit(block);
     release(block);
 }
@@ -58,6 +73,7 @@ void ChorusEffect::setEnabled(bool state) {
 bool ChorusEffect::isEnabled() const { return enabled; }
 
 void ChorusEffect::updateParameters() {
+    AudioGraph::chorus.setWetFilterEnabled(currentChorusParams.wet_filter);
     AudioGraph::chorus.setParams(
         currentChorusParams.base_ms, 
         currentChorusParams.depth, 

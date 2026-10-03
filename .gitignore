@@ -1,0 +1,4 @@
+firmware/.pio/
+firmware/compile_commands.json
+firmware/chorus_test
+firmware/chorus_test.exe

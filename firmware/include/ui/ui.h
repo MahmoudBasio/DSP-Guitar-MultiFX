@@ -8,7 +8,8 @@ extern volatile int main_index;
 extern int sub_index;  
 extern volatile bool ui_needs_update;
 
-extern int values[3][3];
+extern int values[3][5];
+int parameterCount(int effect);
 
 extern const char* main_menu[];
 extern const char* delay_params[];

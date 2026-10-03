@@ -8,7 +8,7 @@ namespace AudioGraph {
     // Expose raw audio objects 
     extern AudioInputI2S            in;
     extern AudioEffectCustomChorus  chorus;
-    extern AudioFilterBiquad        preFilter;
+    extern AudioFilterBiquad        chorusWetFilter;
     extern AudioMixer4              delayInputMixer;
     extern AudioEffectDelay         delay1;
     extern AudioFilterBiquad        repeatFilter;

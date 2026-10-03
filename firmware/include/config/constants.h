@@ -9,7 +9,7 @@ constexpr float FINAL_DRY_GAIN          = 0.65f;
 constexpr float FINAL_WET_GAIN          = 0.75f;
 
 // Filter Constants
-constexpr float PRE_FILTER_HZ           = 3200.0f;
+constexpr float CHORUS_WET_FILTER_HZ           = 3200.0f;
 constexpr float REPEAT_FILTER_HZ        = 1800.0f;
 
 // Hardware Audio Constants

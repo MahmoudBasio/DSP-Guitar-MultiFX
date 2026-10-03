@@ -14,14 +14,12 @@ void setup() {
     // 2. Initialize low-level hardware (Pins, Encoder, Display)
     initHardware();
     
-    // 3. Initialize system interrupts (Footswitches)
-    initSystem();
-
-    // 4. Initialize Audio Graph (Memory, I2S, Static Patch Cords)
+    // Initialize audio before accepting footswitch events.
     AudioManager::init();
 
     // 5. Initialize Effect wrappers and set default states
     EffectManager::init();
+    initSystem();
 
     // 6. Set initial volume and draw the UI
     AudioManager::setSystemVolume(OUTPUT_VOLUME); 
@@ -32,7 +30,7 @@ void setup() {
 }
 
 void loop() {
-    // The CriticalTaskScheduler handles all execution.
-    // Periodic tasks (Poll, Modulation, UI) run in the background.
+    // Apply footswitch changes outside interrupt context.
+    processFootswitchEvents();
     sched.execute(); 
 }

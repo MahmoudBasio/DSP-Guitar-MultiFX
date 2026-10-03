@@ -2,7 +2,7 @@
 #define CORE_SYSTEM_H
 
 extern volatile bool system_is_on;
-extern unsigned long lastInterruptTime;
+void processFootswitchEvents();
 
 void initSystem();
 

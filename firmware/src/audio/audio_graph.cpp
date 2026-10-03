@@ -3,8 +3,8 @@
 namespace AudioGraph {
     // Instantiate raw objects
     AudioInputI2S            in;
+    AudioFilterBiquad        chorusWetFilter;
     AudioEffectCustomChorus  chorus;
-    AudioFilterBiquad        preFilter;
     AudioMixer4              delayInputMixer;
     AudioEffectDelay         delay1;
     AudioFilterBiquad        repeatFilter;
@@ -17,8 +17,9 @@ namespace AudioGraph {
     AudioControlSGTL5000     audioShield;
 
     // Static Patch Cords
-    AudioConnection patchCord1(in, 0, preFilter, 0);
-    AudioConnection patchCord2(preFilter, 0, chorus, 0);
+    AudioConnection patchCord1(in, 0, chorus, 0);
+    AudioConnection chorusFilterInput(in, 0, chorusWetFilter, 0);
+    AudioConnection patchCord2(chorusWetFilter, 0, chorus, 1);
     AudioConnection patchCord3(chorus, 0, finalMixerL, 0);
     AudioConnection patchCord4(chorus, 0, finalMixerR, 0);
     AudioConnection patchCord5(chorus, 0, delayInputMixer, 0);

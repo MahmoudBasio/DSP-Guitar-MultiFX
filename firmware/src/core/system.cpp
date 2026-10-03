@@ -7,31 +7,37 @@
 #include "ui/ui.h"
 
 
-unsigned long lastInterruptTime = 0;
+namespace {
+volatile bool pending[3] = {false, false, false};
+unsigned long lastPress[3] = {0, 0, 0};
+bool seenPress[3] = {false, false, false};
+void recordPress(int index) {
+    unsigned long now = millis();
+    if (!seenPress[index] || now - lastPress[index] >= DEBOUNCE_DELAY_MS) {
+        lastPress[index] = now;
+        seenPress[index] = true;
+        pending[index] = !pending[index];
+    }
+}
+}
 
 void initSystem() {
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_REVERB), isrToggleReverb, FALLING); 
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_DELAY), isrToggleDelay, FALLING);   
-    attachInterrupt(digitalPinToInterrupt(PIN_FS_CHORUS), isrToggleChorus, FALLING); 
+    attachInterrupt(digitalPinToInterrupt(PIN_FS_REVERB), isrToggleReverb, FALLING);
+    attachInterrupt(digitalPinToInterrupt(PIN_FS_DELAY), isrToggleDelay, FALLING);
+    attachInterrupt(digitalPinToInterrupt(PIN_FS_CHORUS), isrToggleChorus, FALLING);
 }
+void isrToggleReverb() { recordPress(0); }
+void isrToggleDelay() { recordPress(1); }
+void isrToggleChorus() { recordPress(2); }
 
-void isrToggleReverb() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleReverb();
-        lastInterruptTime = millis(); 
-    } 
-}
-void isrToggleDelay() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleDelay();
-        lastInterruptTime = millis(); 
-    } 
-}
-void isrToggleChorus() { 
-    if (millis() - lastInterruptTime > DEBOUNCE_DELAY_MS) { 
-        EffectManager::toggleChorus();
-        lastInterruptTime = millis(); 
-    } 
+void processFootswitchEvents() {
+    bool events[3];
+    noInterrupts();
+    for (int i = 0; i < 3; ++i) { events[i] = pending[i]; pending[i] = false; }
+    interrupts();
+    if (events[0]) EffectManager::toggleReverb();
+    if (events[1]) EffectManager::toggleDelay();
+    if (events[2]) EffectManager::toggleChorus();
 }
 
 void cb_SystemCheck() {

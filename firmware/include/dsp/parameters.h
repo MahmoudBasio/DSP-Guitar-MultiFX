@@ -18,6 +18,7 @@ struct ChorusParameters {
     float depth;
     float base_ms;
     float wet;
+    bool wet_filter;
 };
 
 extern DelayParameters currentDelayParams;

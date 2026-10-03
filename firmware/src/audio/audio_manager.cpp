@@ -6,6 +6,7 @@
 namespace AudioManager {
     void init() {
         AudioGraph::setup(); // Allocates global memory and I2S
+        AudioGraph::audioShield.lineInLevel(LINEIN_LEVEL);
         setupStaticRouting();
         Mixer::init();
     }
@@ -15,7 +16,7 @@ namespace AudioManager {
     }
 
     void setupStaticRouting() {
-        AudioGraph::preFilter.setLowpass(0, PRE_FILTER_HZ, 0.707f);
+        AudioGraph::chorusWetFilter.setLowpass(0, CHORUS_WET_FILTER_HZ, 0.707f);
         AudioGraph::repeatFilter.setLowpass(0, REPEAT_FILTER_HZ, 0.707f);
     }
 }

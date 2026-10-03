@@ -60,6 +60,10 @@ Current experimental evaluation is performed at **44.1 kHz** using **128-sample 
 
 These values represent measurements from the current firmware implementation and test configuration.
 
+These measurements predate the optional chorus wet-filter routing and expanded UI.
+Repeat timing, CPU-load, and frequency-response measurements on that revision;
+see [audio routing and controls](Docs/Audio-routing-and-controls.md).
+
 ## System Architecture
 
 The platform separates audio processing, DSP effects, system control, and user-interface functionality into independent modules.

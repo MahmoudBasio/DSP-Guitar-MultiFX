@@ -58,11 +58,22 @@ Current experimental evaluation is performed at **44.1 kHz** using **128-sample 
 | Chorus                  |             4.98% |
 | Delay + Reverb + Chorus |             5.01% |
 
-These values represent measurements from the current firmware implementation and test configuration.
+These values were recorded for an earlier experimental firmware configuration. They have not been revalidated for the current routing and UI revision.
 
 These measurements predate the optional chorus wet-filter routing and expanded UI.
 Repeat timing, CPU-load, and frequency-response measurements on that revision;
 see [audio routing and controls](Docs/Audio-routing-and-controls.md).
+
+## Audio Measurement Record
+
+See [Experimental measurements](Docs/measurements.md) for the measurement
+procedure, original oscilloscope captures, frequency-response data, delay timing
+and feedback ratios, and reverb/chorus test configurations.
+
+The frequency-response sweep characterizes an earlier effects-off sketch with a
+shared 3.2 kHz pre-filter. It does **not** characterize the current unfiltered dry
+path. Harmonic, noise and latency estimates remain preliminary; their limitations
+and missing acquisition details are disclosed in the report.
 
 ## System Architecture
 
@@ -237,6 +248,7 @@ Robotics • Mechanical Designer • Real-Time DSP
 Active development.
 
 Planned work includes additional DSP effects, expanded experimental characterization, audio-quality measurements, and further hardware refinement.
+
 
 
 

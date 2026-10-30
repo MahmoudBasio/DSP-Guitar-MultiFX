@@ -1,85 +1,39 @@
-# DSP Guitar Effects Pedal Architecture (Teensy 4.1)
+# DSP Guitar MultiFX Architecture
 
-## System Overview
+The platform combines a Teensy 4.1, SGTL5000 audio codec, analog interface, OLED display, rotary encoder, and effect footswitches. Its implemented effects are delay, reverb, and chorus.
 
-The system is a real-time digital audio processing pedal built on the Teensy 4.1 microcontroller.
+## Audio path
 
-A guitar input signal is captured, processed through a modular DSP effects chain, and output with minimal latency suitable for live performance.
+Analog input is converted to digital samples by the codec, processed by the Teensy, and converted back to analog output. The current routing keeps the dry input unfiltered. A separate optional 3.2 kHz filter supplies the chorus wet branch. The resulting chorus output feeds both the final dry mix and the delay/reverb branches. Delay repeats pass through a 1.8 kHz filter; delay output can also feed reverb. Wet outputs are mixed with the dry contribution and sent to both output channels.
 
----
+With all effects disabled, audio still passes through the codec and digital graph. Mixer gain still applies; this is not relay bypass or guaranteed unity gain. Sending the same signal to both channels does not establish independent stereo processing.
 
-## Signal Flow
+See [Audio routing and controls](Audio-routing-and-controls.md) for controls, parameter limits, startup state, and validation status.
 
-Guitar Input  
-→ Analog Front-End (signal conditioning)  
-→ Audio Codec (ADC via SGTL5000)  
-→ Teensy 4.1 DSP Processing Core  
-→ Effects Processing Chain  
-→ Audio Codec (DAC)  
-→ Output to amplifier / speaker
+## Firmware organization
 
----
+| Location | Responsibility |
+|---|---|
+| `firmware/src/audio/audio_graph.cpp` | Audio objects and static connections |
+| `firmware/src/audio/audio_manager.cpp` | Audio initialization and settings coordination |
+| `firmware/src/audio/mixer.cpp` | Dry/wet, feedback and effect-input gains |
+| `firmware/src/effects/` | Chorus, delay, reverb and effect management |
+| `firmware/src/dsp/` | DSP settings and presets |
+| `firmware/src/core/` | Hardware, system state and scheduling |
+| `firmware/src/ui/` | Display, menus and encoder handling |
+| `firmware/include/config/` | Constants, pins and preset declarations |
+| `firmware/tests/host/` | Host-side chorus regression checks |
 
-## DSP Processing Pipeline
+The firmware uses the Arduino framework and Teensy Audio Library through PlatformIO. OLED, encoder and footswitch controls are implemented features. Distortion is a possible extension, not one of the three implemented effects described here.
 
-Audio is processed in real time using a block-based streaming architecture:
+## Timing and validation
 
-1. Audio buffer acquisition (input block)
-2. Pre-processing (gain control / normalization)
-3. Effects chain processing:
-   - Distortion (non-linear waveshaping)
-   - Delay (buffer-based echo)
-   - Reverb (Algorithmic Reverb)
-4. Mixing and output gain control
-5. Output buffer transmission
+The experimental operating rate is nominally 44.1 kHz with 128-sample blocks. Each block represents about 2.90 ms of audio. Block duration, CPU processing time, and analog input-to-output latency are different quantities.
 
----
+A latency below 10 ms is a design target, not a validated specification for the current firmware. Historical CPU figures and oscilloscope captures must remain attributed to their tested configurations. The revised routing requires fresh hardware measurements.
 
-## Hardware Architecture
+The [measurement report](measurements.md) includes the earlier filtered effects-off response, delay timing and feedback observations, reverb settings, and preliminary harmonic/noise/latency results. It does not certify current-firmware performance. The [explanation guide](Measurements/understanding-the-measurements.md) defines the measurements and works through their calculations.
 
-- Teensy 4.1 (ARM Cortex-M7 @ 600 MHz)
-- Audio Shield (SGTL5000 codec)
-- Guitar input jack with analog conditioning circuit
-- Audio output to amplifier or speaker system
+## Extension points
 
----
-
-## Software Architecture
-
-The firmware is modular and built around the Teensy Audio Library.
-
-Main components:
-
-- `audio_input.cpp` → Handles audio input stream
-- `audio_engine.cpp` → Manages DSP pipeline and routing
-- `effects/` → Individual effect modules (distortion, delay, reverb)
-- `config.h` → Global parameters (gain, mix, effect levels)
-
-The system uses interrupt-driven, real-time audio processing with fixed-size audio blocks.
-
----
-
-## Real-Time Constraints
-
-- Target latency: < 10 ms
-- Block-based processing using Teensy Audio Library
-- Optimized for ARM Cortex-M7 DSP instructions
-- No dynamic memory allocation in the audio processing path
-- Deterministic execution per audio block
-
----
-
-## Expandability
-
-The architecture is designed to support future enhancements:
-
-- Footswitch / pedal control input
-- Preset saving and loading system
-- External UI (OLED display)
-
-
----
-
-## Summary
-
-This architecture provides a scalable and real-time DSP framework for guitar audio processing on embedded hardware, balancing performance, modularity, and low latency.
+Additional effects can be added through the existing effect interface, parameter management, audio connections and UI. Each routing or gain change should be accompanied by an identified firmware revision and appropriate bench measurements. Host tests supplement, but do not replace, physical audio validation.

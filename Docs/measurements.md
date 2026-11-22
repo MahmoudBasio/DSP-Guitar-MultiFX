@@ -104,6 +104,9 @@ The disabled chorus performs a float conversion and rescaling by 32767/32768 fol
 
 **Terminology:** Call this an **effects-off response with the 3.2 kHz pre-filter enabled**. It is not an analog hardware bypass or an unfiltered codec/front-end measurement.
 
+
+**Reproducible frequency-response analysis:** [MATLAB script, data CSV and methodology](Measurements/frequency-response/README.md). The MATLAB source regenerates the IEEE-format vector/PDF graphs. The comparison curve is an approximate Butterworth model, not the exact measured filter response.
+
 ## 3. Frequency response
 
 For sinusoidal measurements:

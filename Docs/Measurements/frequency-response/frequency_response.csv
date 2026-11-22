@@ -1,0 +1,11 @@
+Frequency_Hz,Input_mVpp,Output_mVpp,Gain_dB,Quality_Note
+20,555,584,0.442,transcribed
+50,555,645,1.303,transcribed
+100,558,656,1.406,corrected_by_experimenter
+200,560,660,1.427,transcribed
+500,568,660,1.304,transcribed
+1000,580,664,1.175,table_value_separate_capture_has_584mV_input
+2000,608,640,0.447,transcribed
+5000,630,260,-7.688,transcribed
+10000,634,75,-18.542,approximate_output_reading
+15000,640,40,-24.082,transcribed

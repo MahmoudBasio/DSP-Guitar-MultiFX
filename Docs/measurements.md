@@ -105,7 +105,15 @@ The disabled chorus performs a float conversion and rescaling by 32767/32768 fol
 **Terminology:** Call this an **effects-off response with the 3.2 kHz pre-filter enabled**. It is not an analog hardware bypass or an unfiltered codec/front-end measurement.
 
 
-**Reproducible frequency-response analysis:** [MATLAB script, data CSV and methodology](Measurements/frequency-response/README.md). The MATLAB source regenerates the IEEE-format vector/PDF graphs. The comparison curve is an approximate Butterworth model, not the exact measured filter response.
+**Frequency-response figures and reproducibility:** [MATLAB analysis, source data, and methodology](Measurements/frequency-response/README.md). The two publication-oriented plots are available as vector previews: [measured effects-off response](Measurements/frequency-response/Measured_Response.svg) and [measured vs. approximate 3.2 kHz low-pass reference](Measurements/frequency-response/Measured_vs_Theoretical.svg). Run the MATLAB source to export vector PDF and 600-DPI PNG versions. The reference curve is an approximation, not an exact model of the SGTL5000 + analog + digital signal path.
+
+![Measured effects-off voltage gain](Measurements/frequency-response/Measured_Response.svg)
+
+*Fig. A. Measured effects-off frequency response with the shared 3.2 kHz pre-filter enabled.*
+
+![Normalized measured response and theoretical second-order low-pass filter](Measurements/frequency-response/Measured_vs_Theoretical.svg)
+
+*Fig. B. Measured system response and approximate second-order 3.2 kHz low-pass filter, both normalized to 1 kHz.*
 
 ## 3. Frequency response
 

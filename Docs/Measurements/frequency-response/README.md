@@ -23,6 +23,14 @@ The precise probe points, output load, oscilloscope bandwidth, and full acquisit
 
 Run `Freq_Response.m` from this directory in MATLAB with Signal Processing Toolbox. Generated plots have IEEE single-column dimensions (3.5 × 2.6 in), a vector-PDF export, and a 600-DPI PNG export. Generated exports are produced locally by the script; absence of an export in the repository does not imply missing source data.
 
+## Vector previews
+
+The repository includes [measured response](Measured_Response.svg) and [measured-versus-theoretical response](Measured_vs_Theoretical.svg) as browser-readable vector previews. These were generated from the tabulated numbers and an approximate second-order digital Butterworth model. For the journal PDF exports, run the MATLAB source to reproduce and export its figures.
+
+![Measured response](Measured_Response.svg)
+
+![Comparison](Measured_vs_Theoretical.svg)
+
 ## Interpretation and cautions
 
 Gain is approximately +0.44 to +1.43 dB from 20 Hz to 2 kHz, then decreases at higher frequencies: about −7.69 dB at 5 kHz, −18.54 dB at 10 kHz and −24.08 dB at 15 kHz. This behavior is consistent with the shared digital low-pass pre-filter but does not isolate that filter from analog circuitry and codec effects.

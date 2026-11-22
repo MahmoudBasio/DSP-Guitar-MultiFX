@@ -10,6 +10,8 @@ This report records frequency response, harmonic readings, delay timing and feed
 
 Start with the [plain-English explanation guide](Measurements/understanding-the-measurements.md) for definitions, worked calculations and interpretation. The [capture gallery](Measurements/capture-gallery.md) explains each of the 31 screenshots individually. Return here for the complete numerical record and methodology disclosures.
 
+**Compiled firmware memory (historical build):** [Flash/RAM1/RAM2 measurements and reproduction limitations](Measurements/memory-utilization.md). The figures are identical across effect-enabled states because the original compiled firmware allocated objects statically; they have not been revalidated for current `main`.
+
 ## 1. Evidence and scope
 
 This document consolidates the measurement review and values supplied during testing. All 31 oscilloscope captures were extracted from `DSP_data(2).rar` and visually reviewed for this illustrated edition. The archive contains 31 intact BMP captures and empty GIF entries, not raw waveform samples. This package preserves the original BMP files and includes lossless PNG display copies. No cropping, annotation, or pixel alteration was applied. Numerical results retain the earlier transcriptions; selected screenshots were checked at full resolution. No FFT capture is included.
